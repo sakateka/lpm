@@ -12,7 +12,7 @@ This project is a Go port of that implementation.
 
 ### What’s different from the original
 
-- The original implementation required inserting prefixes sorted by length (shortest to longest). This requirement has been lifted; you can insert prefixes in any order.
+- The original implementation required inserting prefixes sorted by length (longest to shortest). This requirement has been lifted in this Go port; you can insert prefixes in any order.
 - Implemented in pure Go, with idiomatic APIs and tests.
 
 ### Repository layout
