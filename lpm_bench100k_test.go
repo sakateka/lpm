@@ -19,7 +19,7 @@ func BenchmarkLPMInsert100k(b *testing.B) {
 			name: "ipv4_100k_prefixes",
 			prefixes: func() []netip.Prefix {
 				rng := rand.New(rand.NewSource(42))
-				prefixes := make([]netip.Prefix, 1000_000)
+				prefixes := make([]netip.Prefix, 100_000)
 				for i := range prefixes {
 					// Generate diverse prefixes with random masks (8-32)
 					addr := netip.AddrFrom4([4]byte{
@@ -34,7 +34,7 @@ func BenchmarkLPMInsert100k(b *testing.B) {
 				return prefixes
 			}(),
 			values: func() []string {
-				values := make([]string, 1000_000)
+				values := make([]string, 100_000)
 				for i := range values {
 					values[i] = fmt.Sprintf("DC%d", i)
 				}
@@ -45,7 +45,7 @@ func BenchmarkLPMInsert100k(b *testing.B) {
 			name: "ipv6_100k_prefixes",
 			prefixes: func() []netip.Prefix {
 				rng := rand.New(rand.NewSource(42))
-				prefixes := make([]netip.Prefix, 1000_000)
+				prefixes := make([]netip.Prefix, 100_000)
 				for i := range prefixes {
 					// Generate diverse prefixes with random masks (32-128)
 					addr := netip.AddrFrom16([16]byte{
@@ -63,7 +63,7 @@ func BenchmarkLPMInsert100k(b *testing.B) {
 				return prefixes
 			}(),
 			values: func() []string {
-				values := make([]string, 1000_000)
+				values := make([]string, 100_000)
 				for i := range values {
 					values[i] = fmt.Sprintf("DC%d", i)
 				}
@@ -81,7 +81,7 @@ func BenchmarkLPMInsert100k(b *testing.B) {
 
 			for b.Loop() {
 				lpm.Insert(bm.prefixes[idx], bm.values[idx])
-				idx = (idx + 1) % 1000_000
+				idx = (idx + 1) % 100_000
 			}
 		})
 	}
@@ -99,7 +99,7 @@ func BenchmarkLPMLookup100k(b *testing.B) {
 			name: "ipv4_100k_prefixes",
 			prefixes: func() []netip.Prefix {
 				rng := rand.New(rand.NewSource(42))
-				prefixes := make([]netip.Prefix, 1000_000)
+				prefixes := make([]netip.Prefix, 100_000)
 				for i := range prefixes {
 					addr := netip.AddrFrom4([4]byte{
 						byte((i >> 16) & 0xff),
@@ -113,7 +113,7 @@ func BenchmarkLPMLookup100k(b *testing.B) {
 				return prefixes
 			}(),
 			values: func() []string {
-				values := make([]string, 1000_000)
+				values := make([]string, 100_000)
 				for i := range values {
 					values[i] = fmt.Sprintf("DC%d", i)
 				}
@@ -137,7 +137,7 @@ func BenchmarkLPMLookup100k(b *testing.B) {
 			name: "ipv6_100k_prefixes",
 			prefixes: func() []netip.Prefix {
 				rng := rand.New(rand.NewSource(42))
-				prefixes := make([]netip.Prefix, 1000_000)
+				prefixes := make([]netip.Prefix, 100_000)
 				for i := range prefixes {
 					addr := netip.AddrFrom16([16]byte{
 						0x20, 0x01, 0x0d, 0xb8,
@@ -154,7 +154,7 @@ func BenchmarkLPMLookup100k(b *testing.B) {
 				return prefixes
 			}(),
 			values: func() []string {
-				values := make([]string, 1000_000)
+				values := make([]string, 100_000)
 				for i := range values {
 					values[i] = fmt.Sprintf("DC%d", i)
 				}
@@ -189,7 +189,7 @@ func BenchmarkLPMLookup100k(b *testing.B) {
 			// Setup: Insert 100k prefixes
 			lpm := New()
 
-			for i := range 1000_000 {
+			for i := range 100_000 {
 				lpm.Insert(bm.prefixes[i], bm.values[i])
 			}
 
