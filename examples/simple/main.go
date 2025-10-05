@@ -43,27 +43,6 @@ func main() {
 	fmt.Printf("Size of the lpm: %d\n", stats.TotalSize)
 	fmt.Printf("Values storage size: %d\n", stats.ValuesStorage)
 
-	for _, dcnet := range resp {
-		net := netip.MustParsePrefix(dcnet.CIDR)
-
-		firstAddr := net.Addr()
-		val, ok := lpm.Lookup(firstAddr)
-		if !ok {
-			fmt.Printf("failed to lookup net: %s\n", firstAddr)
-		}
-		if val != dcnet.DC {
-			fmt.Printf("bad value for first Addr %s of %s: %s, expected %s\n", firstAddr, dcnet.CIDR, val, dcnet.DC)
-		}
-		lastAddr := LastAddr(net)
-		val, ok = lpm.Lookup(lastAddr)
-		if !ok {
-			fmt.Printf("failed to lookup net: %s\n", lastAddr)
-		}
-		if val != dcnet.DC {
-			fmt.Printf("bad value for lastAddr %s of %s: %s, expected %s\n", lastAddr, dcnet.CIDR, val, dcnet.DC)
-		}
-	}
-
 	storage := unwrap(lpm.PackToSharedStorage())
 	os.WriteFile("dcnets.lpm", storage, 0o755)
 }
