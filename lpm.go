@@ -1,3 +1,76 @@
+// Package lpm implements a Longest Prefix Match (LPM) trie for fast IP address lookups.
+//
+// # Overview
+//
+// This package provides an efficient data structure for storing and querying IP prefixes
+// (CIDR blocks) with associated values. It supports both IPv4 and IPv6 addresses and uses
+// a 256-way trie structure for optimal lookup performance.
+//
+// # Basic Usage
+//
+// Create a new LPM trie and insert prefixes:
+//
+//	lpm := lpm.New()
+//	lpm.Insert(netip.MustParsePrefix("192.168.1.0/24"), "local-network")
+//	lpm.Insert(netip.MustParsePrefix("10.0.0.0/8"), "private-network")
+//	lpm.Insert(netip.MustParsePrefix("2001:db8::/32"), "ipv6-network")
+//
+// Lookup an IP address to find the most specific matching prefix:
+//
+//	value, found := lpm.Lookup(netip.MustParseAddr("192.168.1.100"))
+//	if found {
+//	    fmt.Println("Matched:", value) // Output: Matched: local-network
+//	}
+//
+// # Longest Prefix Match Behavior
+//
+// The trie implements longest prefix matching, meaning more specific prefixes
+// take precedence over less specific ones:
+//
+//	lpm.Insert(netip.MustParsePrefix("10.0.0.0/8"), "broad")
+//	lpm.Insert(netip.MustParsePrefix("10.1.0.0/16"), "specific")
+//
+//	value, _ := lpm.Lookup(netip.MustParseAddr("10.1.2.3"))
+//	// Returns "specific" because /16 is more specific than /8
+//
+// # Shared Memory Support
+//
+// For high-performance scenarios with multiple processes, the trie can be serialized
+// to shared memory:
+//
+//	// Process 1: Build and serialize the trie
+//	lpm := lpm.New()
+//	lpm.Insert(netip.MustParsePrefix("192.168.0.0/16"), "data")
+//	storage, err := lpm.PackToSharedStorage()
+//	// Write storage to shared memory or file
+//
+//	// Process 2: Load from shared memory
+//	lpm, err := lpm.NewWithSharedStorage(storage)
+//	value, found := lpm.Lookup(netip.MustParseAddr("192.168.1.1"))
+//
+// Shared storage provides zero-copy access to the trie data, making it ideal for
+// read-heavy workloads across multiple processes.
+//
+// # Performance Characteristics
+//
+//   - Lookup: O(address_length) - constant time for IPv4 (4 bytes), IPv6 (16 bytes)
+//   - Insert: O(address_length) - may allocate new blocks as needed
+//   - Memory: Each block uses 1KB (256 × 4 bytes), allocated on-demand
+//
+// # Statistics
+//
+// Get memory usage and block allocation statistics:
+//
+//	stats := lpm.Stats()
+//	fmt.Printf("IPv4 blocks: %d, IPv6 blocks: %d\n",
+//	    stats.IPv4Blocks, stats.IPv6Blocks)
+//	fmt.Printf("Total memory: %d bytes\n", stats.TotalSize)
+//
+// # Thread Safety
+//
+// The LPM trie is NOT thread-safe. External synchronization is required for
+// concurrent access. For read-only workloads after initial construction,
+// consider using shared memory with separate LPM instances per process.
 package lpm
 
 import (
