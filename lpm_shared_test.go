@@ -522,3 +522,52 @@ func TestSharedStoragePersistence(t *testing.T) {
 	t.Logf("Stats after loading from file: IPv4Blocks=%d, IPv6Blocks=%d, TotalSize=%d bytes",
 		stats.IPv4Blocks, stats.IPv6Blocks, stats.TotalSize)
 }
+
+// TestMarshalUnmarshalBinary tests the MarshalBinary and UnmarshalBinary methods
+func TestMarshalUnmarshalBinary(t *testing.T) {
+	// Create and populate an LPM trie
+	original := New()
+	original.Insert(netip.MustParsePrefix("192.168.1.0/24"), "DC1")
+	original.Insert(netip.MustParsePrefix("10.0.0.0/8"), "DC2")
+	original.Insert(netip.MustParsePrefix("2001:db8::/32"), "DC3")
+
+	// Marshal
+	data, err := original.MarshalBinary()
+	if err != nil {
+		t.Fatalf("MarshalBinary failed: %v", err)
+	}
+
+	// Unmarshal
+	restored := New()
+	if err := restored.UnmarshalBinary(data); err != nil {
+		t.Fatalf("UnmarshalBinary failed: %v", err)
+	}
+
+	// Verify lookups
+	tests := []struct {
+		addr string
+		want string
+	}{
+		{"192.168.1.1", "DC1"},
+		{"10.1.2.3", "DC2"},
+		{"2001:db8::1", "DC3"},
+		{"8.8.8.8", ""}, // No match
+	}
+
+	for _, tt := range tests {
+		addr := netip.MustParseAddr(tt.addr)
+		got, found := restored.Lookup(addr)
+
+		if tt.want == "" {
+			if found {
+				t.Errorf("Lookup(%s) should not match, got %q", tt.addr, got)
+			}
+		} else {
+			if !found {
+				t.Errorf("Lookup(%s) not found, want %q", tt.addr, tt.want)
+			} else if got != tt.want {
+				t.Errorf("Lookup(%s) = %q, want %q", tt.addr, got, tt.want)
+			}
+		}
+	}
+}

@@ -74,9 +74,16 @@
 package lpm
 
 import (
+	"encoding"
 	"fmt"
 	"net/netip"
 	"unsafe"
+)
+
+// Ensure LPM implements encoding.BinaryMarshaler and encoding.BinaryUnmarshaler
+var (
+	_ encoding.BinaryMarshaler   = (*LPM)(nil)
+	_ encoding.BinaryUnmarshaler = (*LPM)(nil)
 )
 
 // Encoding scheme:
@@ -327,6 +334,24 @@ func (m *LPM) PackToSharedStorage() ([]byte, error) {
 	}
 
 	return storage, nil
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+// It serializes the LPM trie into a binary format using PackToSharedStorage.
+func (m *LPM) MarshalBinary() ([]byte, error) {
+	return m.PackToSharedStorage()
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+// It deserializes the LPM trie from a binary format using NewWithSharedStorage.
+func (m *LPM) UnmarshalBinary(data []byte) error {
+	lpm, err := NewWithSharedStorage(data)
+	if err != nil {
+		return err
+	}
+
+	*m = *lpm
+	return nil
 }
 
 func blockWithValue(initValue uint32) *LPMBlock {
