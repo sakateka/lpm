@@ -500,11 +500,12 @@ func (m *LPM) Insert(net netip.Prefix, value string) {
 	}
 
 	prefixLen := net.Bits()
+	tail := -prefixLen
 
 	blockIdx := 0
 	// Insertion process
-	for idx, inBlockIdx := range net.Addr().AsSlice() {
-		tail := int((idx+1)*8) - prefixLen
+	for _, inBlockIdx := range net.Addr().AsSlice() {
+		tail += 8
 		if tail >= 0 {
 			// This is the last byte - propagate to the range
 			mask := uint8(0xff << tail)
